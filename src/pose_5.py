@@ -51,6 +51,7 @@ def minimize_marginals(graph, initial_estimate, pose_options):
     best_landmark = 1    # chosen landmark (1 or 2)
 
     lowest_sum = float('inf')
+    final_total_sum = 0.0
     original_graph = graph.clone()
     original_estimate = gtsam.Values(initial_estimate)
 
@@ -59,29 +60,27 @@ def minimize_marginals(graph, initial_estimate, pose_options):
             # Reset variables for this loop iteration
             graph = original_graph.clone()
             initial_estimate = gtsam.Values(original_estimate)
-            best_pose = p_test
-            best_landmark = l_test
-
-            pose_5 = pose_options[best_pose]
+            
+            pose_5 = pose_options[p_test]
             graph, initial_estimate = add_pose(graph, initial_estimate, pose_5)
             result = optimize(graph, initial_estimate)
-            graph = add_landmark_measurement(graph, result, pose_5, best_landmark)
+            graph = add_landmark_measurement(graph, result, pose_5, l_test)
             result = optimize(graph, initial_estimate)
 
             # TODO: Calculate marginal covariances for the relevant variables and visualize the updated factor graph with covariances
-            marginals = gtsam.Marginals(graph, result)
+            gtsam_marginals = gtsam.Marginals(graph, result)
 
-            # The sum of the marginals for each landmark can be computed using marginals.marginalCovariance(L(x)).sum()
-            sum_of_marginals = marginals.marginalCovariance(L(l_test)).sum()
+            target_marginal = gtsam_marginals.marginalCovariance(L(l_test)).sum()
+            
+            total_marginals = gtsam_marginals.marginalCovariance(L(1)).sum() + gtsam_marginals.marginalCovariance(L(2)).sum()
 
-            if sum_of_marginals < lowest_sum:
-                lowest_sum = sum_of_marginals
-                final_best_pose = p_test
-                final_best_landmark = l_test
+            if target_marginal < lowest_sum:
+                lowest_sum = target_marginal
+                best_pose = p_test
+                best_landmark = l_test
+                final_total_sum = total_marginals
         
-    best_pose = final_best_pose
-    best_landmark = final_best_landmark
-    sum_of_marginals = lowest_sum
+    sum_of_marginals = float(final_total_sum)
     
     return best_pose, best_landmark, sum_of_marginals
 
