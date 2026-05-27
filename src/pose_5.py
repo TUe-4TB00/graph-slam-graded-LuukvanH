@@ -72,7 +72,7 @@ def minimize_marginals(graph, initial_estimate, pose_options):
             marginals = gtsam.Marginals(graph, result)
 
             # The sum of the marginals for each landmark can be computed using marginals.marginalCovariance(L(x)).sum()
-            sum_of_marginals = marginals.marginalCovariance(L(1)).sum() + marginals.marginalCovariance(L(2)).sum()
+            sum_of_marginals = marginals.marginalCovariance(L(l_test)).sum()
 
             if sum_of_marginals < lowest_sum:
                 lowest_sum = sum_of_marginals
