@@ -13,7 +13,8 @@ def add_landmark_measurement(graph, initial_estimate, result):
     pose_4 = initial_estimate.atPose2(X(4))
     landmark_2 = result.atPoint2(L(2))
 
-    rotation = pose_4.bearing(landmark_2)
+    rotation = pose_4.bearing(landmark_2).degrees()
     distance = pose_4.range(landmark_2)
+    
     graph.add(gtsam.BearingRangeFactor2D(X(4), L(2), gtsam.Rot2.fromDegrees(rotation), distance, MEASUREMENT_NOISE))
     return graph
